@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#d71920" />
+  <meta name="description" content="Algida saha afiş takip ve kampanya kontrol sistemi." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Algida Saha | Afiş Takip</title>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#dashboard" aria-label="Algida Saha ana sayfa"><span class="brand-mark">A</span><span><b>ALGIDA</b><small>SAHA OPERASYONLARI</small></span></a>
+      <div class="workspace-label">ÇEKMEKÖY SAHA</div>
+      <nav class="nav" aria-label="Ana menü">
+        <button class="nav-item active" data-view="dashboard"><span>▦</span> Genel Bakış</button>
+        <button class="nav-item" data-view="campaigns"><span>◈</span> Kampanyalar</button>
+        <button class="nav-item" data-view="submissions"><span>▧</span> Fotoğraf Kontrolü <i id="pendingNav">2</i></button>
+        <button class="nav-item" data-view="stores"><span>⌖</span> Marketler</button>
+        <button class="nav-item" data-view="reports"><span>▥</span> Raporlar</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="connection-dot"></div><span>Demo modu · Yerel kayıt</span><button id="installBtn" class="install-btn" hidden>Uygulamayı yükle</button></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><button id="menuToggle" class="icon-button mobile-only" aria-label="Menüyü aç">☰</button><div class="crumb"><span>Operasyon</span><b>/</b><strong id="pageTitle">Genel Bakış</strong></div><div class="top-actions"><span class="today" id="todayLabel"></span><button class="icon-button" id="helpBtn" aria-label="Bilgi">?</button><div class="avatar">AS</div><div class="user-meta"><b>Alan Sorumlusu</b><small>Yönetici görünümü</small></div></div></header>
+      <section class="content" id="appContent" aria-live="polite"></section>
+      <footer>ALGIDA SAHA <span>•</span> Afiş Takip Sistemi <span class="footer-right">Bağımsız proje · v0.1 demo</span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <dialog id="campaignDialog" class="modal"><form id="campaignForm" method="dialog"><div class="modal-head"><div><span class="eyebrow">YENİ KAYIT</span><h2>Kampanya oluştur</h2></div><button class="icon-button" type="button" data-close="campaignDialog">×</button></div><label>Kampanya adı<input name="name" required placeholder="Örn. Yaz Kampanyası – Dalga 2" /></label><div class="form-grid"><label>Başlangıç tarihi<input name="start" type="date" required /></label><label>Bitiş tarihi<input name="end" type="date" required /></label></div><label>Hedef marketler<select name="stores" multiple size="5"><option>BİM</option><option>A101</option><option>ŞOK</option><option>CarrefourSA</option><option>Migros</option><option>Hakmar</option><option>Seç Market</option><option>Bizim Toptan</option></select><small class="field-hint">Birden fazla market seçmek için dokunarak seçim yap.</small></label><label>Notlar<textarea name="notes" rows="2" placeholder="Saha ekibine özel bilgi (isteğe bağlı)"></textarea></label><div class="modal-actions"><button type="button" class="btn btn-quiet" data-close="campaignDialog">Vazgeç</button><button class="btn btn-primary" type="submit">Kampanyayı oluştur</button></div></form></dialog>
+  <dialog id="uploadDialog" class="modal"><form id="uploadForm" method="dialog"><div class="modal-head"><div><span class="eyebrow">SAHA KAYDI</span><h2>Afiş fotoğrafı yükle</h2></div><button class="icon-button" type="button" data-close="uploadDialog">×</button></div><label>Kampanya<select name="campaign" id="uploadCampaign" required></select></label><label>Market<select name="store" required><option>BİM</option><option>A101</option><option>ŞOK</option><option>CarrefourSA</option><option>Migros</option><option>Hakmar</option><option>Seç Market</option><option>Bizim Toptan</option></select></label><label>Market / şube adı<input name="branch" required placeholder="Örn. Çekmeköy Merkez" /></label><label>Fotoğraf<input name="photo" type="file" accept="image/*" capture="environment" required /></label><div class="photo-preview" id="photoPreview"><span>Fotoğraf seçildiğinde önizleme burada görünür.</span></div><label>Açıklama<textarea name="note" rows="2" placeholder="Afişin konumu veya kısa not"></textarea></label><div class="modal-actions"><button type="button" class="btn btn-quiet" data-close="uploadDialog">Vazgeç</button><button class="btn btn-primary" type="submit">İncelemeye gönder</button></div></form></dialog>
+  <dialog id="detailDialog" class="modal"></dialog>
+  <script src="app.js"></script>
+</body>
+</html>
