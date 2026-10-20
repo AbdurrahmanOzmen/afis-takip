@@ -47,4 +47,55 @@ $('#uploadForm').addEventListener('submit',e=>{e.preventDefault();const f=new Fo
 $('#helpBtn').addEventListener('click',()=>alert('Algida Saha · Demo\n\nBu sürüm arayüz ve iş akışını denemek içindir. Veriler yalnızca bu tarayıcıda saklanır. Ekipler arası gerçek kullanım için Supabase yapılandırması ve erişim politikaları etkinleştirilmelidir.'));
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('#installBtn').hidden=false});$('#installBtn').addEventListener('click',async()=>{if(!deferredInstall){toast('Tarayıcı menüsünden Ana Ekrana Ekle seçeneğini kullan.');return}deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$('#installBtn').hidden=true});
 if('serviceWorker' in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
-render();
+
+// Supabase Auth: authentication only; campaign/submission data is still demo/local at this stage.
+let supabaseClient=null, currentProfile=null;
+const authGate=$('#authGate'), appShell=$('#appShell'), loginForm=$('#loginForm'), authMessage=$('#authMessage');
+function setAuthMessage(message,success=false){authMessage.textContent=message;authMessage.classList.toggle('success',success)}
+function showLogin(){authGate.hidden=false;appShell.hidden=true}
+async function showApp(session){
+  try{
+    const {data,error}=await supabaseClient.from('profiles').select('id,display_name,role,team').eq('id',session.user.id).single();
+    if(error) throw error;
+    currentProfile=data;
+    if(!['admin','field'].includes(data.role)) throw new Error('Hesabın için geçerli bir rol tanımlı değil. Yöneticine başvur.');
+    authGate.hidden=true;appShell.hidden=false;
+    $('#userDisplayName').textContent=data.display_name||session.user.email||'Kullanıcı';
+    $('#userRoleLabel').textContent=(data.role==='admin'?'Yönetici':'Saha personeli')+(data.team?' · '+data.team:'');
+    $('#userAvatar').textContent=(data.display_name||session.user.email||'A').slice(0,2).toLocaleUpperCase('tr-TR');
+    // Hide admin-only navigation for field accounts. Database RLS remains the real security boundary.
+    $$('[data-view="submissions"], [data-view="reports"]').forEach(el=>el.hidden=data.role!=='admin');
+    if(data.role!=='admin' && ['submissions','reports'].includes(activeView)) activeView='dashboard';
+    render();
+  }catch(error){
+    await supabaseClient.auth.signOut();showLogin();
+    setAuthMessage('Profil okunamadı: '+(error.message||'Bilinmeyen hata')+' — profiles tablosundaki kullanıcı kaydını kontrol et.');
+  }
+}
+loginForm.addEventListener('submit',async e=>{
+  e.preventDefault();if(!supabaseClient){setAuthMessage('Supabase yapılandırması bulunamadı. supabase-config.js dosyasını kontrol et.');return}
+  const button=loginForm.querySelector('button[type="submit"]');button.disabled=true;button.textContent='Giriş yapılıyor…';setAuthMessage('');
+  const form=new FormData(loginForm);
+  try{const {data,error}=await supabaseClient.auth.signInWithPassword({email:String(form.get('email')).trim(),password:String(form.get('password'))});if(error)throw error;if(data.session)await showApp(data.session)}
+  catch(error){setAuthMessage(error.message||'Giriş yapılamadı. E-posta ve şifreni kontrol et.')}
+  finally{button.disabled=false;button.textContent='Giriş yap'}
+});
+$('#logoutBtn').addEventListener('click',async()=>{if(!supabaseClient)return;const {error}=await supabaseClient.auth.signOut();if(error){toast('Çıkış yapılamadı: '+error.message);return}currentProfile=null;showLogin();loginForm.reset();setAuthMessage('Güvenli çıkış yapıldı.',true)});
+$('#forgotPasswordBtn').addEventListener('click',async()=>{
+  if(!supabaseClient){setAuthMessage('Önce Supabase yapılandırmasını kontrol et.');return}
+  const email=String(new FormData(loginForm).get('email')||'').trim();if(!email){setAuthMessage('Şifre sıfırlama bağlantısı için önce e-posta adresini yaz.');return}
+  const redirectTo=location.origin+location.pathname;
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
+  setAuthMessage(error?error.message:'Eğer bu e-posta kayıtlıysa şifre sıfırlama bağlantısı gönderildi.',!error);
+});
+(async function initSupabaseAuth(){
+  if(!window.supabase||!window.SUPABASE_URL||!window.SUPABASE_ANON_KEY||window.SUPABASE_URL.includes('BURAYA')||window.SUPABASE_ANON_KEY.includes('BURAYA')){
+    showLogin();setAuthMessage('Bağlantı ayarları eksik. supabase-config.js içinde Project URL ve Publishable/anon public key değerlerini kontrol et.');return;
+  }
+  try{
+    supabaseClient=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_ANON_KEY);
+    const {data:{session},error}=await supabaseClient.auth.getSession();if(error)throw error;
+    if(session)await showApp(session);else showLogin();
+    supabaseClient.auth.onAuthStateChange((_event,newSession)=>{if(newSession)showApp(newSession);else{currentProfile=null;showLogin()}});
+  }catch(error){showLogin();setAuthMessage('Supabase bağlantı hatası: '+(error.message||'Ayarları kontrol et.'))}
+})();
