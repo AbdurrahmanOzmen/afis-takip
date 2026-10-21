@@ -216,16 +216,21 @@ async function addUser(){
   let d=$('#managementDialog');
   if(!d){d=document.createElement('dialog');d.id='managementDialog';d.className='modal';document.body.appendChild(d);}
   d.dataset.kind='user-create';d.dataset.recordId='';d.dataset.marketId='';
-  d.innerHTML=`<form id="managementForm" class="management-form user-edit-form">
-    <div class="modal-head"><div><span class="eyebrow">KULLANICI YÖNETİMİ</span><h2>Yeni kullanıcı ekle</h2><p class="subheading">Hesap bilgilerini tanımla ve kullanıcıya uygun erişim rolünü seç.</p></div><button class="icon-button" type="button" data-close="managementDialog" aria-label="Kapat">×</button></div>
-    <div class="user-edit-summary"><div class="user-avatar">＋</div><div><b>Yeni hesap</b><small>Bilgiler kaydedildiğinde kullanıcı oluşturulur.</small></div><span class="status-pill status-active">Yeni</span></div>
-    <div class="form-section-title">Hesap bilgileri</div>
-    <label>Ad soyad<input name="display_name" required maxlength="120" autocomplete="name" placeholder="Örn. Ahmet Yılmaz" /></label>
-    <label>E-posta adresi<input name="email" type="email" required maxlength="254" autocomplete="email" placeholder="ornek@firma.com" /></label>
-    <label>Geçici şifre<input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="En az 8 karakter" /><small class="field-hint">Kullanıcı ilk girişinde bu bilgilerle oturum açabilir.</small></label>
-    <div class="form-section-title password-section-title">Yetki ve ekip</div>
-    <div class="form-grid"><label>Kullanıcı rolü<select name="role" required><option value="field" selected>Saha personeli</option><option value="admin">Yönetici</option></select><small class="field-hint">Yönetici tüm yönetim ekranlarına erişebilir.</small></label><label>Ekip adı <span class="field-hint">(İsteğe bağlı)</span><input name="team" maxlength="100" placeholder="Örn. Çekmeköy Satış Teşkilatı" value="${esc(currentProfile.team||'')}" /></label></div>
-    <div class="modal-actions"><button class="btn btn-quiet" type="button" data-close="managementDialog">Vazgeç</button><button class="btn btn-primary" type="submit">Kullanıcı oluştur</button></div>
+  d.classList.add('user-create-dialog');
+  d.innerHTML=`<form id="managementForm" class="management-form user-edit-form user-create-form">
+    <div class="modal-head user-create-heading"><div><span class="eyebrow">ERİŞİM YÖNETİMİ</span><h2>Yeni kullanıcı oluştur</h2><p class="subheading">Hesap bilgilerini tanımla, erişim rolünü ve bağlı olduğu ekibi seç.</p></div><button class="icon-button" type="button" data-close="managementDialog" aria-label="Kapat">×</button></div>
+    <div class="user-create-banner"><div class="user-avatar user-create-avatar">＋</div><div class="user-create-banner-copy"><b>Yeni hesap bilgileri</b><span>Kullanıcı giriş bilgileri oluşturulduktan sonra aktif olur.</span></div><span class="status-pill status-active">Yeni hesap</span></div>
+    <section class="user-form-section"><div class="user-form-section-heading"><span class="user-form-step">01</span><div><b>Kişisel ve giriş bilgileri</b><small>Kullanıcıyı tanımlamak için gerekli alanlar</small></div></div>
+      <div class="form-grid"><label>Ad soyad <span class="required-mark">*</span><input name="display_name" required maxlength="120" autocomplete="name" placeholder="Örn. Ahmet Yılmaz" /></label>
+      <label>E-posta adresi <span class="required-mark">*</span><input name="email" type="email" required maxlength="254" autocomplete="email" placeholder="ornek@firma.com" /></label></div>
+      <label>Geçici şifre <span class="required-mark">*</span><input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="En az 8 karakter" /><small class="field-hint">Bu şifreyle kullanıcı ilk girişini yapabilir. En az 8 karakter kullan.</small></label>
+    </section>
+    <section class="user-form-section"><div class="user-form-section-heading"><span class="user-form-step">02</span><div><b>Yetki ve ekip</b><small>Kullanıcının erişim düzeyini belirle</small></div></div>
+      <div class="form-grid"><label>Kullanıcı rolü <span class="required-mark">*</span><select name="role" required><option value="field" selected>Saha personeli</option><option value="admin">Yönetici</option></select><small class="field-hint">Yönetici tüm yönetim ekranlarına erişebilir.</small></label>
+      <label>Ekip adı <span class="field-hint">(İsteğe bağlı)</span><input name="team" maxlength="100" placeholder="Örn. Çekmeköy Satış Teşkilatı" value="${esc(currentProfile.team||'')}" /></label></div>
+    </section>
+    <div class="user-create-security"><span class="security-icon">✓</span><span><b>Güvenli hesap oluşturma</b><small>Hesap, yönetici doğrulaması yapan güvenli servis üzerinden oluşturulur.</small></span></div>
+    <div class="modal-actions user-create-actions"><button class="btn btn-quiet" type="button" data-close="managementDialog">Vazgeç</button><button class="btn btn-primary" type="submit">＋ Kullanıcı oluştur</button></div>
   </form>`;
   d.showModal();
 }
