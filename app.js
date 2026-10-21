@@ -103,10 +103,31 @@ function renderReports(){
   const marketStats=markets.map(m=>{const bs=eligibleBranches.filter(b=>b.market_id===m.id);const ac=bs.filter(b=>branchAssignments.some(a=>a.branch_id===b.id&&(!selectedCampaign||a.campaign_id===selectedCampaign.id))).length;const approvedCount=bs.filter(b=>branchAssignments.some(a=>a.branch_id===b.id&&(!selectedCampaign||a.campaign_id===selectedCampaign.id))&&branchApproved.has(branchKey(m.name,b.name))).length;const uploaded=bs.filter(b=>branchUploaded.has(branchKey(m.name,b.name))).length;return {market:m,assigned:ac,approved:approvedCount,uploaded,rate:ac?Math.round(approvedCount/ac*100):0,rows:filteredSubmissions.filter(s=>s.store===m.name)};}).filter(x=>x.assigned||x.rows.length);
   const totalAssigned=eligibleBranches.length;const approvedAssigned=eligibleBranches.filter(b=>{const m=markets.find(x=>x.id===b.market_id);return m&&branchAssignments.some(a=>a.branch_id===b.id&&(!selectedCampaign||a.campaign_id===selectedCampaign.id))&&branchApproved.has(branchKey(m.name,b.name))}).length;
   const totalRate=totalAssigned?Math.round(approvedAssigned/totalAssigned*100):0;
+  // Campaign/branch-level follow-up: each assigned branch is counted once per campaign.
+  const followupMap=new Map();
+  relevantAssignments.forEach(a=>{
+    const branch=branches.find(b=>b.id===a.branch_id);
+    const market=branch&&markets.find(m=>m.id===branch.market_id);
+    if(!branch||!market)return;
+    const key=`${a.campaign_id}|||${branch.id}`;
+    if(followupMap.has(key))return;
+    const rows=submissions.filter(s=>s.campaignId===a.campaign_id&&s.store===market.name&&s.branch===branch.name);
+    const approvedRow=rows.find(s=>s.status==='Onaylandı');
+    const pendingRow=rows.filter(s=>s.status==='Bekliyor').sort((x,y)=>y.date.localeCompare(x.date))[0];
+    const rejectedRow=rows.filter(s=>s.status==='Reddedildi').sort((x,y)=>y.date.localeCompare(x.date))[0];
+    const state=approvedRow?'approved':pendingRow?'pending':rejectedRow?'rejected':'missing';
+    followupMap.set(key,{key,branch,market,campaign:campaignById(a.campaign_id),state,row:state==='pending'?pendingRow:state==='rejected'?rejectedRow:null,assignee:branch.assigned_user_id?managedProfiles.find(u=>u.id===branch.assigned_user_id)?.display_name||'Atanmış kullanıcı':'Sorumlu atanmamış'});
+  });
+  const followups=[...followupMap.values()];
+  const followupCounts={missing:followups.filter(x=>x.state==='missing').length,pending:followups.filter(x=>x.state==='pending').length,rejected:followups.filter(x=>x.state==='rejected').length,approved:followups.filter(x=>x.state==='approved').length};
+  const followupRows=followups.filter(x=>x.state!=='approved').sort((a,b)=>({missing:0,rejected:1,pending:2}[a.state]-({missing:0,rejected:1,pending:2}[b.state]))).slice(0,8);
   const statusTotal=Math.max(1,filteredSubmissions.length);
   return `${pageHeading('SAHA PERFORMANSI','Performans analizi','Personel, market ve kampanya bazında onaylı şube tamamlama oranlarını takip edin.',`<button class="btn btn-quiet" data-action="export">↓ CSV dışa aktar</button>`)}
   <section class="panel performance-filters"><div class="filter-intro"><span class="filter-symbol">⌕</span><div><span class="eyebrow">RAPOR ÖZELLEŞTİRME</span><h3>Kampanya kapsamı</h3><p>Performans verilerini seçtiğin kampanyaya göre filtrele.</p></div></div><div class="campaign-select-wrap"><label for="performanceCampaignFilter">Görüntülenecek kampanya</label><div class="campaign-select-control"><span class="campaign-select-icon">◈</span><select id="performanceCampaignFilter"><option value="all" ${campaignId==='all'?'selected':''}>Tüm kampanyalar</option>${campaigns.map(c=>`<option value="${c.id}" ${campaignId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select><span class="select-chevron">⌄</span></div><span class="filter-help">${selectedCampaign?`Seçili: ${esc(selectedCampaign.name)}`:'Genel görünüm · tüm kampanyalar dahil'}</span></div><div class="filter-info"><span>ⓘ</span><p>Onaylı tamamlama, atanmış farklı şubeler içindeki en az bir onaylı gönderisi bulunan şubelerin oranıdır. Aynı şube tekrar sayılmaz.</p></div></section>
   <div class="stats-grid"><article class="stat-card"><div class="stat-top">Atanmış şube <span class="stat-icon tone-blue">⌖</span></div><div class="stat-value">${totalAssigned}</div><div class="stat-foot">Seçili kapsamda</div></article><article class="stat-card"><div class="stat-top">Onaylı tamamlanan <span class="stat-icon tone-green">✓</span></div><div class="stat-value">${approvedAssigned}</div><div class="stat-foot">Farklı şubeler</div></article><article class="stat-card"><div class="stat-top">Onaylı tamamlama <span class="stat-icon tone-green">↗</span></div><div class="stat-value">%${totalRate}</div><div class="stat-foot">Ana performans ölçütü</div></article><article class="stat-card"><div class="stat-top">Bekleyen / reddedilen <span class="stat-icon tone-amber">◷</span></div><div class="stat-value">${filteredSubmissions.filter(s=>s.status==='Bekliyor').length} / ${filteredSubmissions.filter(s=>s.status==='Reddedildi').length}</div><div class="stat-foot">Değerlendirme kayıtları</div></article></div>
+  <section class="panel followup-panel"><div class="panel-head"><div><span class="eyebrow">AKILLI TAKİP</span><h3>Eksik şube takibi</h3><p>${selectedCampaign?esc(selectedCampaign.name):'Tüm kampanyalar'} · sadece kampanyaya atanmış şubeler</p></div><span class="followup-total">${followupRows.length} işlem önceliği</span></div>
+  <div class="followup-summary"><div class="followup-stat"><span class="followup-dot missing"></span><div><b>${followupCounts.missing}</b><small>Fotoğraf yok</small></div></div><div class="followup-stat"><span class="followup-dot rejected"></span><div><b>${followupCounts.rejected}</b><small>Reddedildi</small></div></div><div class="followup-stat"><span class="followup-dot pending"></span><div><b>${followupCounts.pending}</b><small>Onay bekliyor</small></div></div><div class="followup-stat"><span class="followup-dot approved"></span><div><b>${followupCounts.approved}</b><small>Tamamlandı</small></div></div></div>
+  ${followupRows.length?`<div class="followup-list">${followupRows.map(x=>`<div class="followup-row"><span class="followup-state ${x.state}">${x.state==='missing'?'Eksik':x.state==='rejected'?'Reddedildi':'Bekliyor'}</span><div class="followup-main"><b>${esc(x.market.name)} · ${esc(x.branch.name)}</b><small>${esc(x.campaign.name)} · ${esc(x.assignee)}</small>${x.state==='rejected'&&x.row?.reviewNote?`<small class="followup-reason">Ret nedeni: ${esc(x.row.reviewNote)}</small>`:''}</div><div class="followup-action">${x.row?`<button class="btn btn-quiet btn-small" data-action="submission-detail" data-id="${x.row.id}">Kaydı aç</button>`:`<button class="btn btn-quiet btn-small" data-action="branch-detail" data-id="${x.branch.id}">Şube detayı</button>`}</div></div>`).join('')}</div>${followups.filter(x=>x.state!=='approved').length>8?`<div class="followup-more">İlk 8 öncelikli kayıt gösteriliyor. Kampanya filtresiyle listeyi daraltabilirsin.</div>`:''}`:'<div class="followup-empty"><span>✓</span><b>Şimdilik takip gerektiren şube yok</b><p>Seçili kapsamda tüm atanmış şubeler onaylandı veya henüz kampanya ataması yapılmadı.</p></div>'}</section>
   <section class="panel"><div class="panel-head"><div><h3>Personel performansı</h3><p>Atanmış şube, fotoğraf yükleme ve onaylı tamamlama</p></div></div><div class="table-wrap"><table><thead><tr><th>PERSONEL</th><th>ATANAN ŞUBE</th><th>YÜKLEME YAPILAN</th><th>ONAYLI ŞUBE</th><th>ONAYLI TAMAMLAMA</th><th>GÖNDERİ DURUMU</th></tr></thead><tbody>${userStats.map(x=>`<tr><td><b>${esc(x.user.display_name||'İsimsiz')}</b><div class="muted">${esc(x.user.team||'Ekip belirtilmemiş')}</div></td><td>${x.assigned}</td><td>${x.uploaded}</td><td>${x.approved}</td><td style="min-width:150px"><b>%${x.rate}</b><div class="progress"><span style="width:${x.rate}%"></span></div></td><td><span class="report-approved">✓ ${x.accepted}</span> · <span class="report-pending">◷ ${x.pending}</span> · <span class="report-rejected">× ${x.rejected}</span></td></tr>`).join('')||'<tr><td colspan="6">Henüz saha personeli veya şube ataması bulunmuyor.</td></tr>'}</tbody></table></div></section>
   <section class="panel"><div class="panel-head"><div><h3>Market bazlı performans</h3><p>Her marketin atanmış şubeleri içindeki onaylı tamamlama oranı</p></div></div><div class="table-wrap"><table><thead><tr><th>MARKET</th><th>ATANMIŞ ŞUBE</th><th>YÜKLEME YAPILAN</th><th>ONAYLI ŞUBE</th><th>ONAYLI TAMAMLAMA</th><th>GÖNDERİLER</th></tr></thead><tbody>${marketStats.map(x=>`<tr><td><b>${esc(x.market.name)}</b></td><td>${x.assigned}</td><td>${x.uploaded}</td><td>${x.approved}</td><td style="min-width:150px"><b>%${x.rate}</b><div class="progress"><span style="width:${x.rate}%"></span></div></td><td>${x.rows.length} kayıt</td></tr>`).join('')||'<tr><td colspan="6">Seçili kapsamda veri bulunmuyor.</td></tr>'}</tbody></table></div></section>
   <section class="panel"><div class="panel-head"><div><h3>Fotoğraf kontrol özeti</h3><p>${selectedCampaign?esc(selectedCampaign.name):'Tüm kampanyalar'} · gönderi bazında durum</p></div></div><div class="bar-list">${[['Onaylandı',filteredSubmissions.filter(s=>s.status==='Onaylandı').length,'#2b9b6b'],['Bekliyor',filteredSubmissions.filter(s=>s.status==='Bekliyor').length,'#e2a43b'],['Reddedildi',filteredSubmissions.filter(s=>s.status==='Reddedildi').length,'#d71920']].map(([label,n,color])=>`<div><div class="bar-row-head"><span>${label}</span><span>${n} kayıt · %${Math.round(n/statusTotal*100)}</span></div><div class="bar-track"><span style="width:${Math.round(n/statusTotal*100)}%;background:${color}"></span></div></div>`).join('')}</div></section>
@@ -140,18 +161,22 @@ async function saveManagementForm(form){
   button.disabled=true;button.textContent='Kaydediliyor…';
   try{
     let result;
-    if(kind==='user'){
+    if(kind==='user-create'||kind==='user'){
       const display_name=String(f.get('display_name')||'').trim();
-      const role=String(f.get('role')||'field').trim().toLowerCase();
+      const role=String(f.get('role')||'field')==='admin'?'admin':'field';
       const team=String(f.get('team')||'').trim();
       const password=String(f.get('password')||'');
+      const email=String(f.get('email')||'').trim().toLowerCase();
       if(!display_name)throw new Error('Ad soyad boş olamaz.');
-      if(!['admin','field'].includes(role))throw new Error('Geçerli bir rol seçmelisin.');
-      if(password&&password.length<8)throw new Error('Yeni şifre en az 8 karakter olmalı.');
-      const {data,error}=await supabaseClient.functions.invoke('admin-create-user',{body:{action:'update',id:recordId,display_name,role,team,password}});
+      if(kind==='user-create'&&!email)throw new Error('E-posta adresi gereklidir.');
+      if(kind==='user-create'&&password.length<8)throw new Error('Şifre en az 8 karakter olmalıdır.');
+      if(password&&password.length<8)throw new Error('Şifre en az 8 karakter olmalıdır.');
+      const body=kind==='user-create'?{display_name,email,password,role,team}:{action:'update',id:recordId,display_name,role,team,password};
+      const {data,error}=await supabaseClient.functions.invoke('admin-create-user',{body});
       if(error)throw error;if(data?.error)throw new Error(data.error);
-      d.close();await refreshManagedProfiles();render();toast('Kullanıcı bilgileri güncellendi.');return;
-    }else if(kind==='market'){
+      d.close();await refreshManagedProfiles();render();toast(kind==='user-create'?'Kullanıcı hesabı oluşturuldu.':'Kullanıcı bilgileri güncellendi.');return;
+    }
+    if(kind==='market'){
       const name=String(f.get('name')||'').trim();if(!name)throw new Error('Market adı boş olamaz.');
       result=recordId?await supabaseClient.from('markets').update({name}).eq('id',recordId):await supabaseClient.from('markets').insert({name,created_by:currentProfile.id});
     }else{
@@ -186,7 +211,24 @@ async function editUser(id){
   d.showModal();
 }
 async function deleteUser(id){if(currentProfile?.role!=='admin')return;const u=managedProfiles.find(x=>x.id===id);if(!u||!confirm(`${u.display_name||'Bu kullanıcı'} hesabı kalıcı olarak silinsin mi?`))return;try{const {data,error}=await supabaseClient.functions.invoke('admin-create-user',{body:{action:'delete',id}});if(error)throw error;if(data?.error)throw new Error(data.error);await refreshManagedProfiles();render();toast('Kullanıcı silindi.')}catch(e){toast('Kullanıcı silinemedi: '+e.message)}}
-async function addUser(){if(currentProfile?.role!=='admin')return;const display_name=prompt('Kullanıcının ad soyadı:','');if(display_name===null)return;const email=prompt('Kullanıcının e-posta adresi:','');if(email===null)return;const password=prompt('Geçici şifre (en az 8 karakter):','');if(password===null)return;const role=prompt('Rol: admin veya field','field');if(role===null)return;const team=prompt('Ekip adı (isteğe bağlı):',currentProfile.team||'');if(team===null)return;try{const {data,error}=await supabaseClient.functions.invoke('admin-create-user',{body:{display_name,email,password,role:role.trim().toLowerCase()==='admin'?'admin':'field',team}});if(error)throw error;if(data?.error)throw new Error(data.error);await refreshManagedProfiles();render();toast('Kullanıcı hesabı oluşturuldu.')}catch(e){toast('Kullanıcı oluşturulamadı. Edge Function kurulu mu? '+(e.message||''))}}
+async function addUser(){
+  if(currentProfile?.role!=='admin')return;
+  let d=$('#managementDialog');
+  if(!d){d=document.createElement('dialog');d.id='managementDialog';d.className='modal';document.body.appendChild(d);}
+  d.dataset.kind='user-create';d.dataset.recordId='';d.dataset.marketId='';
+  d.innerHTML=`<form id="managementForm" class="management-form user-edit-form">
+    <div class="modal-head"><div><span class="eyebrow">KULLANICI YÖNETİMİ</span><h2>Yeni kullanıcı ekle</h2><p class="subheading">Hesap bilgilerini tanımla ve kullanıcıya uygun erişim rolünü seç.</p></div><button class="icon-button" type="button" data-close="managementDialog" aria-label="Kapat">×</button></div>
+    <div class="user-edit-summary"><div class="user-avatar">＋</div><div><b>Yeni hesap</b><small>Bilgiler kaydedildiğinde kullanıcı oluşturulur.</small></div><span class="status-pill status-active">Yeni</span></div>
+    <div class="form-section-title">Hesap bilgileri</div>
+    <label>Ad soyad<input name="display_name" required maxlength="120" autocomplete="name" placeholder="Örn. Ahmet Yılmaz" /></label>
+    <label>E-posta adresi<input name="email" type="email" required maxlength="254" autocomplete="email" placeholder="ornek@firma.com" /></label>
+    <label>Geçici şifre<input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="En az 8 karakter" /><small class="field-hint">Kullanıcı ilk girişinde bu bilgilerle oturum açabilir.</small></label>
+    <div class="form-section-title password-section-title">Yetki ve ekip</div>
+    <div class="form-grid"><label>Kullanıcı rolü<select name="role" required><option value="field" selected>Saha personeli</option><option value="admin">Yönetici</option></select><small class="field-hint">Yönetici tüm yönetim ekranlarına erişebilir.</small></label><label>Ekip adı <span class="field-hint">(İsteğe bağlı)</span><input name="team" maxlength="100" placeholder="Örn. Çekmeköy Satış Teşkilatı" value="${esc(currentProfile.team||'')}" /></label></div>
+    <div class="modal-actions"><button class="btn btn-quiet" type="button" data-close="managementDialog">Vazgeç</button><button class="btn btn-primary" type="submit">Kullanıcı oluştur</button></div>
+  </form>`;
+  d.showModal();
+}
 async function editCampaign(id){if(currentProfile?.role!=='admin')return;const c=campaigns.find(x=>x.id===id);if(!c)return;editingCampaignId=id;const f=$('#campaignForm');f.elements.name.value=c.name;f.elements.start.value=c.start;f.elements.end.value=c.end;f.elements.notes.value=c.notes||'';[...f.elements.stores.options].forEach(o=>o.selected=c.stores.includes(o.value));campaignExampleFile=null;$('#newCampaignExamplePreview').innerHTML=c.examplePhoto?`<img src="${c.examplePhoto}" alt="Mevcut örnek afiş"/>`:'<span>Yeni örnek afiş seçilmedi.</span>';f.querySelector('h2').textContent='Kampanyayı düzenle';f.querySelector('button[type=submit]').textContent='Değişiklikleri kaydet';openDialog('campaignDialog');}
 async function deleteCampaign(id){if(currentProfile?.role!=='admin')return;const c=campaigns.find(x=>x.id===id);if(!c||!confirm(`“${c.name}” kampanyası silinsin mi? İlişkili atamalar da silinebilir.`))return;try{const {error}=await supabaseClient.from('campaigns').delete().eq('id',id);if(error)throw error;await loadData();render();toast('Kampanya silindi.')}catch(e){toast('Kampanya silinemedi: '+e.message)}}
 function openDialog(id){const d=$('#'+id);if(id==='campaignDialog'){const storeSel=$('#campaignStores');if(storeSel&&markets.length)storeSel.innerHTML=markets.filter(m=>m.is_active).map(m=>`<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('');}if(id==='uploadDialog'){const sel=$('#uploadCampaign');sel.innerHTML=campaigns.filter(c=>c.isActive&&!c.expired&&c.end>=new Date().toISOString().slice(0,10)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');if(!sel.options.length){toast('Önce aktif bir kampanya oluşturmalısın.');return}renderSelectedCampaignExample();}d.showModal()}
