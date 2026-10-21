@@ -43,3 +43,40 @@ create policy "Read campaign example photos"
     bucket_id = 'poster-photos'
     and (storage.foldername(name))[2] = 'campaign-examples'
   );
+
+-- Kampanyanın hedef marketi dışında afiş gönderilmesini veritabanı seviyesinde de engelle.
+create or replace function public.validate_submission_campaign_store()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  campaign_stores text[];
+  campaign_active boolean;
+begin
+  select stores, is_active
+    into campaign_stores, campaign_active
+    from public.campaigns
+   where id = new.campaign_id;
+
+  if not found then
+    raise exception 'Seçilen kampanya bulunamadı.';
+  end if;
+  if campaign_active is distinct from true then
+    raise exception 'Pasif kampanyaya afiş gönderilemez.';
+  end if;
+  -- Boş stores dizisi eski kayıtlarla uyumluluk için tüm marketler anlamına gelir.
+  if cardinality(coalesce(campaign_stores, array[]::text[])) > 0
+     and not (new.store = any(campaign_stores)) then
+    raise exception 'Seçilen market bu kampanyanın hedef marketleri arasında değil.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists validate_submission_campaign_store_trigger on public.poster_submissions;
+create trigger validate_submission_campaign_store_trigger
+before insert or update of campaign_id, store
+on public.poster_submissions
+for each row execute function public.validate_submission_campaign_store();
