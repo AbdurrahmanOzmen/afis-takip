@@ -1,4 +1,4 @@
-# Algida Saha — Afiş Takip Sistemi
+# Saha — Afiş Takip Sistemi
 
 Saha kampanyaları ve afiş kontrol süreçleri için mobil öncelikli PWA projesidir.
 
