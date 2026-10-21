@@ -40,3 +40,22 @@
 :root[data-theme="dark"] .modal{background:var(--card);color:var(--ink)}:root[data-theme="dark"] .modal label{color:#d0d6e0}:root[data-theme="dark"] .activity-icon,:root[data-theme="dark"] .store-mark,:root[data-theme="dark"] .filter-tabs{background:#282f3b}:root[data-theme="dark"] .progress,:root[data-theme="dark"] .bar-track{background:#343c49}:root[data-theme="dark"] .hint-box{background:#30291c;border-color:#55452a;color:#e7c98d}:root[data-theme="dark"] footer{border-color:var(--line)}:root[data-theme="dark"] .filter-info{background:#202d42;border-color:#304562}:root[data-theme="dark"] .filter-info p{color:#bdc8d9}
 @media(max-width:1050px){.performance-filters{grid-template-columns:1fr 1fr}.filter-info{grid-column:1/-1}}
 @media(max-width:650px){.performance-filters{grid-template-columns:1fr;gap:17px;padding:17px}.filter-info{grid-column:auto}.filter-intro{align-items:flex-start}.theme-toggle{width:34px;height:34px}}
+
+/* Modern user edit form */
+.management-form .modal-head{margin-bottom:18px}
+.user-edit-form{min-width:0}
+.user-edit-summary{display:flex;align-items:center;gap:11px;padding:13px 14px;margin:0 0 22px;border:1px solid var(--line);border-radius:12px;background:var(--surface,#f8f9fb)}
+.user-avatar{width:42px;height:42px;display:grid;place-items:center;flex-shrink:0;border-radius:13px;background:linear-gradient(145deg,#d71920,#f05b61);color:#fff;font:800 17px Manrope,sans-serif}
+.user-edit-summary>div:nth-child(2){min-width:0;flex:1}
+.user-edit-summary b,.user-edit-summary small{display:block}
+.user-edit-summary b{font-size:12px;color:var(--ink,#252a32)}
+.user-edit-summary small{font-size:10px;color:var(--muted,#9096a0);margin-top:4px}
+.form-section-title{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted,#8d949e);padding-bottom:9px;margin:0 0 13px;border-bottom:1px solid var(--line,#e9ebef)}
+.password-section-title{margin-top:22px}
+.user-edit-form .form-grid{align-items:start}
+.user-edit-form .field-hint{display:inline-block;margin-left:3px}
+.user-edit-form label small.field-hint{display:block;margin:7px 0 0;line-height:1.5}
+.user-edit-form .modal-actions{padding-top:15px;border-top:1px solid var(--line,#e9ebef)}
+:root[data-theme="dark"] .user-edit-summary{background:#202733;border-color:var(--line)}
+:root[data-theme="dark"] .user-edit-summary b{color:var(--ink)}
+@media(max-width:520px){.user-edit-form .form-grid{grid-template-columns:1fr;gap:0}.user-edit-summary{align-items:flex-start}.user-edit-summary .status-pill{margin-left:auto}.user-edit-form .modal-actions{position:sticky;bottom:-25px;background:var(--card,#fff);padding:14px 0 4px}}

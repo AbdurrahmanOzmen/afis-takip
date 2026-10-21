@@ -140,7 +140,18 @@ async function saveManagementForm(form){
   button.disabled=true;button.textContent='Kaydediliyor…';
   try{
     let result;
-    if(kind==='market'){
+    if(kind==='user'){
+      const display_name=String(f.get('display_name')||'').trim();
+      const role=String(f.get('role')||'field').trim().toLowerCase();
+      const team=String(f.get('team')||'').trim();
+      const password=String(f.get('password')||'');
+      if(!display_name)throw new Error('Ad soyad boş olamaz.');
+      if(!['admin','field'].includes(role))throw new Error('Geçerli bir rol seçmelisin.');
+      if(password&&password.length<8)throw new Error('Yeni şifre en az 8 karakter olmalı.');
+      const {data,error}=await supabaseClient.functions.invoke('admin-create-user',{body:{action:'update',id:recordId,display_name,role,team,password}});
+      if(error)throw error;if(data?.error)throw new Error(data.error);
+      d.close();await refreshManagedProfiles();render();toast('Kullanıcı bilgileri güncellendi.');return;
+    }else if(kind==='market'){
       const name=String(f.get('name')||'').trim();if(!name)throw new Error('Market adı boş olamaz.');
       result=recordId?await supabaseClient.from('markets').update({name}).eq('id',recordId):await supabaseClient.from('markets').insert({name,created_by:currentProfile.id});
     }else{
@@ -156,7 +167,24 @@ async function saveManagementForm(form){
 async function deleteMarket(id){const m=markets.find(x=>x.id===id);if(!m||!confirm(`${m.name} ve bağlı şubeleri silinsin mi?`))return;const {error}=await supabaseClient.from('markets').delete().eq('id',id);if(error){toast('Market silinemedi: '+error.message);return}await loadData();render();toast('Market ve bağlı şubeleri silindi.')}
 async function deleteBranch(id){const b=branchById(id);if(!b||!confirm(`${b.name} şubesi ve kampanya atamaları silinsin mi?`))return;const {error}=await supabaseClient.from('market_branches').delete().eq('id',id);if(error){toast('Şube silinemedi: '+error.message);return}await loadData();render();toast('Şube silindi.')}
 async function saveBranchCampaigns(id){if(currentProfile?.role!=='admin')return;const b=branchById(id);if(!b)return;const market=markets.find(m=>m.id===b.market_id);const chosen=$$('#detailDialog [data-branch-campaign]:checked').map(el=>el.value);const valid=chosen.filter(cid=>{const c=campaignById(cid);return !c.stores.length||c.stores.includes(market?.name)});try{const {error:deleteError}=await supabaseClient.from('campaign_branch_assignments').delete().eq('branch_id',id);if(deleteError)throw deleteError;if(valid.length){const {error}=await supabaseClient.from('campaign_branch_assignments').insert(valid.map(campaign_id=>({campaign_id,branch_id:id,assigned_by:currentProfile.id})));if(error)throw error}await loadData();openBranchDetail(id);render();toast('Şube kampanya atamaları kaydedildi.')}catch(e){toast('Atamalar kaydedilemedi: '+e.message)}}
-async function editUser(id){if(currentProfile?.role!=='admin')return;const u=managedProfiles.find(x=>x.id===id);if(!u)return;const display_name=prompt('Ad soyad:',u.display_name||'');if(display_name===null)return;const role=prompt('Rol: admin veya field',u.role);if(role===null)return;const team=prompt('Ekip adı:',u.team||'');if(team===null)return;const password=prompt('Yeni şifre (değiştirmeyeceksen boş bırak):','');if(password===null)return;try{const {data,error}=await supabaseClient.functions.invoke('admin-create-user',{body:{action:'update',id,display_name,role:role.trim().toLowerCase()==='admin'?'admin':'field',team,password}});if(error)throw error;if(data?.error)throw new Error(data.error);await refreshManagedProfiles();render();toast('Kullanıcı bilgileri güncellendi.')}catch(e){toast('Kullanıcı güncellenemedi: '+e.message)}}
+async function editUser(id){
+  if(currentProfile?.role!=='admin')return;
+  const u=managedProfiles.find(x=>x.id===id);if(!u)return;
+  let d=$('#managementDialog');
+  if(!d){d=document.createElement('dialog');d.id='managementDialog';d.className='modal';document.body.appendChild(d);}
+  d.dataset.kind='user';d.dataset.recordId=u.id;d.dataset.marketId='';
+  d.innerHTML=`<form id="managementForm" class="management-form user-edit-form">
+    <div class="modal-head"><div><span class="eyebrow">KULLANICI YÖNETİMİ</span><h2>Kullanıcıyı düzenle</h2><p class="subheading">Kullanıcı bilgilerini ve erişim rolünü buradan güncelleyebilirsin.</p></div><button class="icon-button" type="button" data-close="managementDialog" aria-label="Kapat">×</button></div>
+    <div class="user-edit-summary"><div class="user-avatar">${esc((u.display_name||'K').trim().slice(0,1).toLocaleUpperCase('tr-TR'))}</div><div><b>${esc(u.display_name||'İsimsiz kullanıcı')}</b><small>Hesap bilgileri</small></div><span class="status-pill status-active">Düzenlenebilir</span></div>
+    <div class="form-section-title">Temel bilgiler</div>
+    <label>Ad soyad<input name="display_name" required maxlength="120" autocomplete="name" placeholder="Örn. Ahmet Yılmaz" value="${esc(u.display_name||'')}" /></label>
+    <div class="form-grid"><label>Kullanıcı rolü<select name="role" required><option value="field" ${u.role==='field'?'selected':''}>Saha personeli</option><option value="admin" ${u.role==='admin'?'selected':''}>Yönetici</option></select><small class="field-hint">Yönetici tüm yönetim ekranlarına erişebilir.</small></label><label>Ekip adı <span class="field-hint">(İsteğe bağlı)</span><input name="team" maxlength="100" placeholder="Örn. Çekmeköy Satış Teşkilatı" value="${esc(u.team||'')}" /></label></div>
+    <div class="form-section-title password-section-title">Şifre güncelleme</div>
+    <label>Yeni şifre <span class="field-hint">(Değiştirmeyeceksen boş bırak)</span><input name="password" type="password" minlength="8" autocomplete="new-password" placeholder="En az 8 karakter" /><small class="field-hint">Güvenlik için mevcut şifre gösterilmez. Yalnızca yeni şifre girersen güncellenir.</small></label>
+    <div class="modal-actions"><button class="btn btn-quiet" type="button" data-close="managementDialog">Vazgeç</button><button class="btn btn-primary" type="submit">Değişiklikleri kaydet</button></div>
+  </form>`;
+  d.showModal();
+}
 async function deleteUser(id){if(currentProfile?.role!=='admin')return;const u=managedProfiles.find(x=>x.id===id);if(!u||!confirm(`${u.display_name||'Bu kullanıcı'} hesabı kalıcı olarak silinsin mi?`))return;try{const {data,error}=await supabaseClient.functions.invoke('admin-create-user',{body:{action:'delete',id}});if(error)throw error;if(data?.error)throw new Error(data.error);await refreshManagedProfiles();render();toast('Kullanıcı silindi.')}catch(e){toast('Kullanıcı silinemedi: '+e.message)}}
 async function addUser(){if(currentProfile?.role!=='admin')return;const display_name=prompt('Kullanıcının ad soyadı:','');if(display_name===null)return;const email=prompt('Kullanıcının e-posta adresi:','');if(email===null)return;const password=prompt('Geçici şifre (en az 8 karakter):','');if(password===null)return;const role=prompt('Rol: admin veya field','field');if(role===null)return;const team=prompt('Ekip adı (isteğe bağlı):',currentProfile.team||'');if(team===null)return;try{const {data,error}=await supabaseClient.functions.invoke('admin-create-user',{body:{display_name,email,password,role:role.trim().toLowerCase()==='admin'?'admin':'field',team}});if(error)throw error;if(data?.error)throw new Error(data.error);await refreshManagedProfiles();render();toast('Kullanıcı hesabı oluşturuldu.')}catch(e){toast('Kullanıcı oluşturulamadı. Edge Function kurulu mu? '+(e.message||''))}}
 async function editCampaign(id){if(currentProfile?.role!=='admin')return;const c=campaigns.find(x=>x.id===id);if(!c)return;editingCampaignId=id;const f=$('#campaignForm');f.elements.name.value=c.name;f.elements.start.value=c.start;f.elements.end.value=c.end;f.elements.notes.value=c.notes||'';[...f.elements.stores.options].forEach(o=>o.selected=c.stores.includes(o.value));campaignExampleFile=null;$('#newCampaignExamplePreview').innerHTML=c.examplePhoto?`<img src="${c.examplePhoto}" alt="Mevcut örnek afiş"/>`:'<span>Yeni örnek afiş seçilmedi.</span>';f.querySelector('h2').textContent='Kampanyayı düzenle';f.querySelector('button[type=submit]').textContent='Değişiklikleri kaydet';openDialog('campaignDialog');}
