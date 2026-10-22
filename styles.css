@@ -127,3 +127,33 @@ body.sidebar-collapsed .sidebar .nav-item .nav-icon{margin:0}
 :root[data-theme="dark"] .auth-card,:root[data-theme="dark"] .login-card,:root[data-theme="dark"] .auth-panel{background:var(--card);color:var(--ink);border-color:var(--line)}
 :root[data-theme="dark"] .auth-gate h1,:root[data-theme="dark"] .auth-gate h2,:root[data-theme="dark"] .auth-gate p,:root[data-theme="dark"] .auth-gate label{color:var(--ink)}
 :root[data-theme="dark"] .auth-gate input{background:#171c24;color:var(--ink);border-color:var(--line)}
+
+/* İnce ayar: daraltılmış menü, tema ikonları ve üst kullanıcı alanı. Mevcut sayfa kartlarına dokunmaz. */
+.theme-toggle,.login-theme-toggle{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);box-shadow:0 3px 12px rgba(20,28,40,.06);transition:transform .18s,border-color .18s,background .18s}
+.theme-toggle:hover,.login-theme-toggle:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--red) 42%,var(--line))}
+.theme-toggle svg,.login-theme-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.login-theme-toggle{position:absolute;top:22px;right:22px;z-index:3}
+.top-actions{gap:10px}
+.top-actions .user-meta{padding:0 5px 0 2px;min-width:115px}
+.top-actions .avatar{width:38px;height:38px;box-shadow:inset 0 0 0 1px rgba(215,25,32,.08)}
+.top-actions #logoutBtn{border-radius:11px;padding:9px 13px;min-height:38px}
+.top-actions #themeToggle{margin-left:3px}
+body.sidebar-collapsed .sidebar{width:78px;padding:22px 10px 16px;align-items:stretch}
+body.sidebar-collapsed .main-area{margin-left:78px;width:calc(100% - 78px)}
+body.sidebar-collapsed .sidebar .brand{justify-content:center;padding:0 0 29px;gap:0}
+body.sidebar-collapsed .sidebar .brand>span:not(.brand-mark){display:none}
+body.sidebar-collapsed .sidebar .brand-mark{flex:0 0 39px}
+body.sidebar-collapsed .sidebar .workspace-label{font-size:0;padding:0;height:1px;overflow:hidden}
+body.sidebar-collapsed .sidebar .nav{gap:7px}
+body.sidebar-collapsed .sidebar .nav-item{font-size:0;justify-content:center;position:relative;gap:0;min-height:46px;padding:10px 0;border-radius:12px}
+body.sidebar-collapsed .sidebar .nav-item>span{display:block;font-size:20px;line-height:1;width:auto}
+body.sidebar-collapsed .sidebar .nav-item>i{position:absolute;top:2px;right:2px;margin:0;font-size:9px;padding:2px 4px}
+body.sidebar-collapsed .sidebar .sidebar-bottom{justify-content:center;padding:16px 0 0;font-size:0}
+body.sidebar-collapsed .sidebar .sidebar-bottom .connection-dot{flex:0 0 7px}
+body.sidebar-collapsed .sidebar .install-btn{display:none}
+body.sidebar-collapsed .sidebar .nav-item[title]:hover::after{content:attr(title);position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);background:#20242c;color:#fff;font-size:11px;font-weight:700;white-space:nowrap;padding:9px 11px;border-radius:8px;box-shadow:0 8px 24px #1118272b;z-index:60;pointer-events:none}
+@media(max-width:800px){body.sidebar-collapsed .sidebar{width:252px;padding:25px 17px 18px}body.sidebar-collapsed .main-area{margin-left:0;width:100%}body.sidebar-collapsed .sidebar .brand>span:not(.brand-mark),body.sidebar-collapsed .sidebar .workspace-label{display:block}body.sidebar-collapsed .sidebar .workspace-label{font-size:10px;padding:0 12px 12px;height:auto}body.sidebar-collapsed .sidebar .nav-item{font-size:14px;justify-content:flex-start;gap:13px;padding:12px}body.sidebar-collapsed .sidebar .nav-item>span{font-size:19px;width:19px}body.sidebar-collapsed .sidebar .nav-item>i{position:static;font-size:10px;margin-left:auto;padding:3px 6px}body.sidebar-collapsed .sidebar .sidebar-bottom{justify-content:flex-start;font-size:11px;padding:17px 7px 0}body.sidebar-collapsed .sidebar .install-btn{display:block}}
+@media(max-width:800px){.top-actions{gap:7px}.top-actions .user-meta{display:none}.top-actions .avatar{width:34px;height:34px}.top-actions #logoutBtn{padding:8px 10px}.theme-toggle{width:36px;height:36px}}
+:root[data-theme="dark"] .theme-toggle,:root[data-theme="dark"] .login-theme-toggle{background:#242b36;border-color:#3a4352;color:#f4d477}
+:root[data-theme="dark"] .top-actions .avatar{background:#3a242b;color:#ff9ca0}
+:root[data-theme="dark"] .top-actions #logoutBtn{background:#252c37;color:#e9edf5;border-color:#3a4352}
