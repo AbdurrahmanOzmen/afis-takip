@@ -79,10 +79,21 @@ Deno.serve(async (req) => {
       if (!id || !display_name || !email) return json({ error: 'Kullanıcı, ad soyad ve e-posta zorunludur.' }, 400);
       if (password && password.length < 8) return json({ error: 'Şifre en az 8 karakter olmalıdır.' }, 400);
       if (id === callerData.user.id && role !== 'admin') return json({ error: 'Kendi yönetici yetkini bu ekrandan kaldıramazsın.' }, 400);
-      const authUpdates: Record<string, unknown> = { email, email_confirm: true };
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Geçerli bir e-posta adresi gir.' }, 400);
+      const { data: existingUserResult, error: existingUserError } = await admin.auth.admin.getUserById(id);
+      if (existingUserError || !existingUserResult.user) return json({ error: 'Düzenlenecek kullanıcı hesabı bulunamadı.' }, 404);
+
+      // E-posta yalnızca gerçekten değiştiyse güncellenir; yeni şifre de yalnızca doldurulmuşsa gönderilir.
+      const authUpdates: Record<string, unknown> = {};
+      if ((existingUserResult.user.email || '').toLowerCase() !== email) {
+        authUpdates.email = email;
+        authUpdates.email_confirm = true;
+      }
       if (password) authUpdates.password = password;
-      const { error: authUpdateError } = await admin.auth.admin.updateUserById(id, authUpdates);
-      if (authUpdateError) throw authUpdateError;
+      if (Object.keys(authUpdates).length) {
+        const { error: authUpdateError } = await admin.auth.admin.updateUserById(id, authUpdates);
+        if (authUpdateError) throw authUpdateError;
+      }
       const { error: profileUpdateError } = await admin.from('profiles').update({ display_name, role, team }).eq('id', id);
       if (profileUpdateError) throw profileUpdateError;
       return json({ success: true, user: { id, display_name, email, role, team } });

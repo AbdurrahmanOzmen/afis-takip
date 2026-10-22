@@ -163,6 +163,7 @@ async function addOrEditBranch(marketId=null,branchId=null){if(!markets.length){
 async function saveManagementForm(form){
   if(currentProfile?.role!=='admin')return;
   const d=$('#managementDialog'),kind=d.dataset.kind,recordId=d.dataset.recordId||null,f=new FormData(form),button=form.querySelector('button[type="submit"]');
+  const originalButtonText=button.textContent;
   button.disabled=true;button.textContent='Kaydediliyor…';
   try{
     let result;
@@ -192,7 +193,7 @@ async function saveManagementForm(form){
     }
     if(result.error)throw result.error;
     d.close();await loadData();await refreshManagedProfiles();render();toast(kind==='market'?'Market kaydedildi.':'Şube ve sorumlu ataması kaydedildi.');
-  }catch(e){toast('Kayıt yapılamadı: '+e.message)}finally{button.disabled=false;button.textContent=kind==='market'?'Market oluştur':'Şube oluştur';}
+  }catch(e){toast('Kayıt yapılamadı: '+(e?.message||'Beklenmeyen bir hata oluştu.'))}finally{button.disabled=false;button.textContent=originalButtonText;}
 }
 async function deleteMarket(id){const m=markets.find(x=>x.id===id);if(!m||!confirm(`${m.name} ve bağlı şubeleri silinsin mi?`))return;const {error}=await supabaseClient.from('markets').delete().eq('id',id);if(error){toast('Market silinemedi: '+error.message);return}await loadData();render();toast('Market ve bağlı şubeleri silindi.')}
 async function deleteBranch(id){const b=branchById(id);if(!b||!confirm(`${b.name} şubesi ve kampanya atamaları silinsin mi?`))return;const {error}=await supabaseClient.from('market_branches').delete().eq('id',id);if(error){toast('Şube silinemedi: '+error.message);return}await loadData();render();toast('Şube silindi.')}
