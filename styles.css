@@ -157,3 +157,14 @@ body.sidebar-collapsed .sidebar .nav-item[title]:hover::after{content:attr(title
 :root[data-theme="dark"] .theme-toggle,:root[data-theme="dark"] .login-theme-toggle{background:#242b36;border-color:#3a4352;color:#f4d477}
 :root[data-theme="dark"] .top-actions .avatar{background:#3a242b;color:#ff9ca0}
 :root[data-theme="dark"] .top-actions #logoutBtn{background:#252c37;color:#e9edf5;border-color:#3a4352}
+
+/* İşlem renkleri: oluşturma/yükleme yeşil, silme kırmızı, düzenleme mavi */
+:root{--action-green:#18845b;--action-green-dark:#116b49;--action-blue:#3867c8;--action-blue-dark:#2b50a0}
+.btn-create-green,.btn-upload-green,[data-action="market-add"],[data-action="branch-add"],[data-action="branch-add-select"],[data-action="campaign"],[data-action="upload"],#campaignForm button[type="submit"]:not(.btn-update-blue),#managementForm[data-mode="create"] button[type="submit"],#managementForm[data-mode="edit"] button[type="submit"],.user-create-actions .btn-primary,#uploadForm button[type="submit"]{background:var(--action-green)!important;border-color:var(--action-green)!important;color:#fff!important;box-shadow:0 4px 10px #18845b20}
+.btn-create-green:hover,.btn-upload-green:hover,[data-action="market-add"]:hover,[data-action="branch-add"]:hover,[data-action="branch-add-select"]:hover,[data-action="campaign"]:hover,[data-action="upload"]:hover,#campaignForm button[type="submit"]:not(.btn-update-blue):hover{background:var(--action-green-dark)!important}
+.btn-update-blue,.btn-edit-blue,[data-action="market-edit"],[data-action="branch-edit"],[data-action="campaign-edit"],[data-action="user-edit"],[data-action="user-update"]{background:var(--action-blue)!important;border-color:var(--action-blue)!important;color:#fff!important;box-shadow:0 4px 10px #3867c820}
+.btn-update-blue:hover,.btn-edit-blue:hover,[data-action="market-edit"]:hover,[data-action="branch-edit"]:hover,[data-action="campaign-edit"]:hover,[data-action="user-edit"]:hover,[data-action="user-update"]:hover{background:var(--action-blue-dark)!important}
+[data-action="market-delete"],[data-action="branch-delete"],[data-action="campaign-delete"],[data-action="user-delete"]{background:#fff0f0!important;border-color:#f5d2d3!important;color:#b81018!important}
+:root[data-theme="dark"] [data-action="market-delete"],:root[data-theme="dark"] [data-action="branch-delete"],:root[data-theme="dark"] [data-action="campaign-delete"],:root[data-theme="dark"] [data-action="user-delete"]{background:#3a2227!important;border-color:#633139!important;color:#ffb4b8!important}
+
+#managementForm[data-mode="edit"] button[type="submit"]{background:var(--action-blue)!important;border-color:var(--action-blue)!important;color:#fff!important}
