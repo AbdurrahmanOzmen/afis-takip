@@ -1,1 +1,35 @@
-const CACHE='algida-saha-v6';const FILES=['./','./index.html','./styles.css','./app.js','./supabase-config.js','./manifest.webmanifest','./assets/icon.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(cached=>cached||fetch(e.request).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return res}).catch(()=>caches.match('./index.html'))))});
+/* Algida Afiş Takip — Web Push service worker */
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (_) {
+    payload = { body: event.data ? event.data.text() : '' };
+  }
+
+  const title = payload.title || 'Algida Afiş Takip';
+  const options = {
+    body: payload.body || 'Yeni bir bildirimin var.',
+    icon: new URL('./assets/icon.svg', self.registration.scope).href,
+    badge: new URL('./assets/icon.svg', self.registration.scope).href,
+    tag: payload.tag || payload.id || 'algida-afis-bildirim',
+    data: { url: payload.url || self.registration.scope },
+    renotify: false
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || self.registration.scope, self.registration.scope).href;
+  event.waitUntil((async () => {
+    const windows = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of windows) {
+      if (client.url.startsWith(self.registration.scope) && 'focus' in client) {
+        if ('navigate' in client && client.url !== target) await client.navigate(target);
+        return client.focus();
+      }
+    }
+    if (clients.openWindow) return clients.openWindow(target);
+  })());
+});

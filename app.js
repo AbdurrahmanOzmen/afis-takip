@@ -3,6 +3,7 @@ const STORE_CODES={'BİM':'Bİ','A101':'A1','ŞOK':'Ş','CarrefourSA':'CS','Migr
 function dateOffset(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
 let campaigns=[], submissions=[], notifications=[], markets=[], branches=[], branchAssignments=[], managedProfiles=[], activeView='dashboard', submissionFilter='Tümü', deferredInstall=null, selectedPhoto=null, campaignExampleFile=null, currentProfile=null, supabaseClient=null, notificationTimer=null, editingCampaignId=null, storesSearch='', storesMarketFilter='all', reportFollowupFilter='all', reportFollowupPage=1, reportStaffFilter='all', campaignDateFrom='', campaignDateTo='', campaignMarketFilter='all', assignmentSyncWarning='';
 const knownNotificationIds=new Set();
+const PUSH_VAPID_PUBLIC_KEY='BMWpndNG56Dit8IjEJssqHE7Zi9HbU_J5-Eig9hlhywHR4NjgOyxGz17dViQDFnmrbVhKhcaup_OcTNuyHwdTEw';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 function save(){ /* Supabase is the source of truth; no localStorage writes. */ }
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -34,17 +35,39 @@ async function loadData(){
     return {id:r.id,campaignId:r.campaign_id,store:r.store,branch:r.branch,person:names[r.submitted_by]||'Saha personeli',date:(r.submitted_at||'').slice(0,10),status:dbToUiStatus[r.status]||'Bekliyor',note:r.note||'',reviewNote:r.review_note||'',photo,photoPath:r.photo_path,submittedBy:r.submitted_by};
   }));
 }
+function base64UrlToUint8Array(value){
+  const padding='='.repeat((4-value.length%4)%4);
+  const base64=(value+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(base64);const output=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)output[i]=raw.charCodeAt(i);
+  return output;
+}
+async function enablePushNotifications(){
+  try{
+    if(!currentProfile||!supabaseClient){toast('Önce hesabına giriş yapmalısın.');return;}
+    if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){toast('Bu tarayıcı web push bildirimlerini desteklemiyor.');return;}
+    const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+    if(isIOS&&!isStandalone){toast('iPhone’da bildirim için önce Paylaş > Ana Ekrana Ekle yap, sonra uygulama simgesinden aç.');return;}
+    if(!PUSH_VAPID_PUBLIC_KEY||String(PUSH_VAPID_PUBLIC_KEY).includes('BURAYA')){toast('Push anahtarı ayarlanmamış. KURULUM.txt dosyasındaki PUSH_VAPID_PUBLIC_KEY adımını tamamla.');return;}
+    const permission=await Notification.requestPermission();
+    if(permission!=='granted'){toast('Bildirim izni verilmedi. Telefon ayarlarından izin vermen gerekebilir.');return;}
+    const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+    await navigator.serviceWorker.ready;
+    let subscription=await registration.pushManager.getSubscription();
+    if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64UrlToUint8Array(PUSH_VAPID_PUBLIC_KEY)});
+    const {error}=await supabaseClient.from('push_subscriptions').upsert({endpoint:subscription.endpoint,user_id:currentProfile.id,subscription:subscription.toJSON(),updated_at:new Date().toISOString()},{onConflict:'endpoint'});
+    if(error)throw error;
+    toast('Telefon bildirimleri etkinleştirildi. Ekran kilitliyken de bildirim gelebilir.');
+    if($('#notificationsDialog').open)openNotifications();
+  }catch(error){console.error('Push bildirim kurulumu:',error);toast('Bildirimler etkinleştirilemedi: '+(error?.message||'Ayarları kontrol et.'));}
+}
 async function loadNotifications({notifyNew=false}={}){
   if(!currentProfile)return;
   const {data,error}=await supabaseClient.from('notifications').select('id,title,body,is_read,created_at,campaign_id').eq('user_id',currentProfile.id).order('created_at',{ascending:false}).limit(30);
   if(error){console.warn('Bildirimler alınamadı:',error.message);return;}
   const rows=data||[];
-  if(notifyNew){
-    const fresh=rows.filter(n=>!knownNotificationIds.has(n.id));
-    if(fresh.length&&knownNotificationIds.size&&'Notification' in window&&Notification.permission==='granted'){
-      fresh.forEach(n=>new Notification(n.title,{body:n.body||'',icon:'./assets/icon.svg',tag:n.id}));
-    }
-  }
+  // Native push notifications are delivered by sw.js; polling only refreshes the in-app badge.
   rows.forEach(n=>knownNotificationIds.add(n.id));
   notifications=rows;
   const badge=$('#notificationBadge');
@@ -53,7 +76,7 @@ async function loadNotifications({notifyNew=false}={}){
 async function openNotifications(){
   await loadNotifications();
   const d=$('#notificationsDialog');
-  d.innerHTML=`<div class="modal-head"><div><span class="eyebrow">EKİP DUYURULARI</span><h2>Bildirimler</h2></div><button class="icon-button" type="button" data-close="notificationsDialog" aria-label="Kapat">×</button></div><div class="notification-list">${notifications.length?notifications.map(n=>`<article class="notification-item ${n.is_read?'':'unread'}"><span class="notification-symbol">${n.campaign_id?'◈':'•'}</span><div><b>${esc(n.title)}</b><p>${esc(n.body||'')}</p><time>${new Date(n.created_at).toLocaleString('tr-TR')}</time></div></article>`).join(''):'<div class="empty-state">Henüz bildirim yok. Yeni kampanyalar burada görünecek.</div>'}</div><div class="modal-actions"><button class="btn btn-quiet" type="button" data-action="enable-notifications">${('Notification' in window&&Notification.permission==='granted')?'Tarayıcı bildirimleri açık':'Tarayıcı bildirimlerini aç'}</button><button class="btn btn-primary" type="button" data-action="mark-notifications-read">Okundu olarak işaretle</button></div>`;
+  d.innerHTML=`<div class="modal-head"><div><span class="eyebrow">EKİP DUYURULARI</span><h2>Bildirimler</h2></div><button class="icon-button" type="button" data-close="notificationsDialog" aria-label="Kapat">×</button></div><div class="notification-list">${notifications.length?notifications.map(n=>`<article class="notification-item ${n.is_read?'':'unread'}"><span class="notification-symbol">${n.campaign_id?'◈':'•'}</span><div><b>${esc(n.title)}</b><p>${esc(n.body||'')}</p><time>${new Date(n.created_at).toLocaleString('tr-TR')}</time></div></article>`).join(''):'<div class="empty-state">Henüz bildirim yok. Yeni kampanyalar burada görünecek.</div>'}</div><div class="modal-actions"><button class="btn btn-quiet" type="button" data-action="enable-notifications">${('Notification' in window&&Notification.permission==='granted')?'Telefon bildirimlerini yeniden bağla':'Telefon bildirimlerini etkinleştir'}</button><button class="btn btn-primary" type="button" data-action="mark-notifications-read">Okundu olarak işaretle</button></div>`;
   if(!d.open)d.showModal();
 }
 function statusClass(s){return s==='Onaylandı'?'status-approved':s==='Reddedildi'?'status-rejected':s==='Aktif'?'status-active':'status-pending'}
@@ -332,7 +355,7 @@ async function handleAction(action,id){
     if(action==='reject'){reviewNote=prompt('Reddetme nedenini yaz:','Fotoğraf/afiş uygun değil.');if(reviewNote===null)return;if(!reviewNote.trim()){toast('Reddetme nedeni boş olamaz.');return}status='rejected'}else status='approved';
     try{const {error}=await supabaseClient.from('poster_submissions').update({status,reviewed_by:currentProfile.id,review_note:reviewNote,reviewed_at:new Date().toISOString()}).eq('id',id);if(error)throw error;const notice={user_id:s.submittedBy,title:action==='approve'?'Afişin onaylandı':'Afişin reddedildi',body:action==='approve'?'Gönderdiğin afiş yönetici tarafından onaylandı.':`Gönderdiğin afiş reddedildi. Neden: ${reviewNote}`,campaign_id:s.campaignId};const {error:noticeError}=await supabaseClient.from('notifications').insert(notice);if(noticeError)console.warn('Durum bildirimi oluşturulamadı:',noticeError.message);await loadData();await loadNotifications();if($('#detailDialog').open)$('#detailDialog').close();render();toast(action==='approve'?'Fotoğraf onaylandı.':'Fotoğraf reddedildi; açıklama saha personeline iletildi.')}catch(error){toast('İşlem kaydedilemedi: '+error.message)}
   }
-  if(action==='enable-notifications'){if(!('Notification' in window)){toast('Bu tarayıcı bildirimleri desteklemiyor.');return}const permission=await Notification.requestPermission();toast(permission==='granted'?'Tarayıcı bildirimleri açıldı.':'Bildirim izni verilmedi.');if($('#notificationsDialog').open)openNotifications();}
+  if(action==='enable-notifications'){await enablePushNotifications();}
   if(action==='mark-notifications-read'){const {error}=await supabaseClient.from('notifications').update({is_read:true}).eq('user_id',currentProfile.id).eq('is_read',false);if(error){toast('Bildirimler güncellenemedi: '+error.message);return}notifications=notifications.map(n=>({...n,is_read:true}));await loadNotifications();if($('#notificationsDialog').open)openNotifications();toast('Bildirimler okundu olarak işaretlendi.')}
   if(action==='export')exportCSV();
 }
