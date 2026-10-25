@@ -3,7 +3,7 @@ const STORE_CODES={'BİM':'Bİ','A101':'A1','ŞOK':'Ş','CarrefourSA':'CS','Migr
 function dateOffset(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
 let campaigns=[], submissions=[], notifications=[], markets=[], branches=[], branchAssignments=[], managedProfiles=[], activeView='dashboard', submissionFilter='Tümü', deferredInstall=null, selectedPhoto=null, campaignExampleFile=null, currentProfile=null, supabaseClient=null, notificationTimer=null, editingCampaignId=null, storesSearch='', storesMarketFilter='all', reportFollowupFilter='all', reportFollowupPage=1, reportStaffFilter='all', campaignDateFrom='', campaignDateTo='', campaignMarketFilter='all', assignmentSyncWarning='';
 const knownNotificationIds=new Set();
-const PUSH_VAPID_PUBLIC_KEY='BBeTYfBnf4X6dpUSjzvWrkesVQiKBelpN5Fj9thSmVtrNgjsT9wUodo9V9P_3RkYsExDywwYnTakFLOnRPtIEn0';
+const PUSH_VAPID_PUBLIC_KEY='BHFv9MCpxSFR8s970cG3I_AshCs6ShTpDWCDEiB7Ae7_pv93y4ETXE-Fzp20_Xs2_bSpMJklFGiO65PgzW2IQU8';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 function save(){ /* Supabase is the source of truth; no localStorage writes. */ }
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
