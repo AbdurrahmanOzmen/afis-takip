@@ -54,11 +54,35 @@ async function enablePushNotifications(){
     if(permission!=='granted'){toast('Bildirim izni verilmedi. Telefon ayarlarından izin vermen gerekebilir.');return;}
     const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
     await navigator.serviceWorker.ready;
+
+    const expectedKey=base64UrlToUint8Array(PUSH_VAPID_PUBLIC_KEY);
     let subscription=await registration.pushManager.getSubscription();
-    if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64UrlToUint8Array(PUSH_VAPID_PUBLIC_KEY)});
+
+    // Reuse the current subscription only if it was created with this VAPID public key.
+    // Apple returns VapidPkHashMismatch when the subscription still belongs to an older key.
+    if(subscription){
+      const oldEndpoint=subscription.endpoint;
+      const currentKey=subscription.options?.applicationServerKey;
+      let keyMatches=false;
+      if(currentKey){
+        const currentBytes=new Uint8Array(currentKey);
+        keyMatches=currentBytes.length===expectedKey.length&&currentBytes.every((byte,index)=>byte===expectedKey[index]);
+      }
+      if(!keyMatches){
+        const unsubscribed=await subscription.unsubscribe();
+        if(!unsubscribed)throw new Error('Eski bildirim aboneliği kaldırılamadı. Uygulamayı kapatıp tekrar açmayı dene.');
+        const {error:deleteError}=await supabaseClient.from('push_subscriptions').delete().eq('endpoint',oldEndpoint).eq('user_id',currentProfile.id);
+        if(deleteError)throw deleteError;
+        subscription=null;
+      }
+    }
+
+    if(!subscription){
+      subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:expectedKey});
+    }
     const {error}=await supabaseClient.from('push_subscriptions').upsert({endpoint:subscription.endpoint,user_id:currentProfile.id,subscription:subscription.toJSON(),updated_at:new Date().toISOString()},{onConflict:'endpoint'});
     if(error)throw error;
-    toast('Telefon bildirimleri etkinleştirildi. Ekran kilitliyken de bildirim gelebilir.');
+    toast('Telefon bildirimleri etkinleştirildi. Yeni abonelik kaydedildi.');
     if($('#notificationsDialog').open)openNotifications();
   }catch(error){console.error('Push bildirim kurulumu:',error);toast('Bildirimler etkinleştirilemedi: '+(error?.message||'Ayarları kontrol et.'));}
 }
