@@ -1,4 +1,4 @@
-/* Algida Afiş Takip — Web Push service worker */
+/* Afiş Takip — Web Push service worker */
 self.addEventListener('push', (event) => {
   let payload = {};
   try {
@@ -7,11 +7,11 @@ self.addEventListener('push', (event) => {
     payload = { body: event.data ? event.data.text() : '' };
   }
 
-  const title = payload.title || 'Algida Afiş Takip';
+  const title = payload.title || 'Afiş Takip Sistemi';
   const options = {
     body: payload.body || 'Yeni bir bildirimin var.',
-    icon: new URL('./assets/icon.svg', self.registration.scope).href,
-    badge: new URL('./assets/icon.svg', self.registration.scope).href,
+    icon: new URL('./icon.svg', self.registration.scope).href,
+    badge: new URL('./icon.svg', self.registration.scope).href,
     tag: payload.tag || payload.id || 'algida-afis-bildirim',
     data: { url: payload.url || self.registration.scope },
     renotify: false
