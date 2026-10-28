@@ -264,3 +264,23 @@ body.sidebar-collapsed .sidebar .nav-item[title]:hover::after{content:attr(title
   .campaign-row-actions .btn{padding:7px 8px;font-size:10px;}
 }
 
+
+
+/* Scoped interaction polish: red hover ring inspired by the theme toggle. */
+@keyframes algidaRedRing{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 0%,transparent)}100%{box-shadow:0 0 0 4px color-mix(in srgb,var(--red) 16%,transparent),0 0 17px color-mix(in srgb,var(--red) 22%,transparent)}}
+#themeToggle:hover,#loginThemeToggle:hover,#logoutBtn:hover,[data-action*="refresh"]:hover,[data-action*="reset"]:hover,[data-action*="clear"]:hover,.modal-actions .btn-quiet:hover{border-color:color-mix(in srgb,var(--red) 65%,var(--line));animation:algidaRedRing .55s ease-in-out infinite alternate;transform:translateY(-1px)}
+#logoutBtn,[data-action*="refresh"],[data-action*="reset"],[data-action*="clear"],.modal-actions .btn-quiet{transition:transform .18s,border-color .18s,box-shadow .18s}
+.delete-confirm-dialog{width:min(440px,calc(100% - 24px));padding:26px;border-radius:20px;text-align:left}
+.delete-confirm-dialog::backdrop{background:rgba(16,20,29,.55);backdrop-filter:blur(5px)}
+.delete-confirm-dialog .delete-confirm-mark{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:color-mix(in srgb,var(--red) 10%,var(--card));color:var(--red);font-size:25px;font-weight:900;margin-bottom:16px}
+.delete-confirm-dialog .modal-head{align-items:flex-start;margin-bottom:12px}
+.delete-confirm-dialog .modal-head h2{font-size:20px}
+.delete-confirm-description{color:var(--muted);font-size:13px;line-height:1.65;margin:0 0 14px}
+.delete-confirm-warning{display:flex;gap:9px;align-items:flex-start;padding:11px 12px;background:color-mix(in srgb,var(--red) 6%,var(--card));border:1px solid color-mix(in srgb,var(--red) 15%,var(--line));border-radius:11px;color:var(--muted);font-size:11px;line-height:1.5;margin:0 0 20px}
+.delete-confirm-warning span{color:var(--red);font-size:15px;line-height:1}
+.delete-confirm-dialog .modal-actions{justify-content:flex-end;gap:9px}
+.delete-confirm-dialog .btn-danger-soft{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 5px 13px #d7192025}
+.delete-confirm-dialog .btn-danger-soft:hover{background:var(--red-dark);border-color:var(--red-dark)}
+:root[data-theme="dark"] .delete-confirm-warning{background:#302126;border-color:#553138;color:#d2c4c6}
+@media(max-width:480px){.delete-confirm-dialog{padding:21px 17px}.delete-confirm-dialog .modal-actions button{flex:1}}
+@media(prefers-reduced-motion:reduce){#themeToggle:hover,#loginThemeToggle:hover,#logoutBtn:hover,[data-action*="refresh"]:hover,[data-action*="reset"]:hover,[data-action*="clear"]:hover,.modal-actions .btn-quiet:hover{animation:none;transform:none}}
