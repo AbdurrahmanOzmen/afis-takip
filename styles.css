@@ -284,3 +284,35 @@ body.sidebar-collapsed .sidebar .nav-item[title]:hover::after{content:attr(title
 :root[data-theme="dark"] .delete-confirm-warning{background:#302126;border-color:#553138;color:#d2c4c6}
 @media(max-width:480px){.delete-confirm-dialog{padding:21px 17px}.delete-confirm-dialog .modal-actions button{flex:1}}
 @media(prefers-reduced-motion:reduce){#themeToggle:hover,#loginThemeToggle:hover,#logoutBtn:hover,[data-action*="refresh"]:hover,[data-action*="reset"]:hover,[data-action*="clear"]:hover,.modal-actions .btn-quiet:hover{animation:none;transform:none}}
+
+
+/* Yalnızca istenen arayüz düzeltmeleri: mobil fotoğraf filtreleri ve koyu tema market etiketleri */
+@media(max-width:600px){
+  .panel-head{min-width:0;flex-wrap:wrap;align-items:flex-start;gap:12px}
+  .panel-head>.filter-tabs{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:5px;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+  }
+  .panel-head>.filter-tabs button{
+    min-width:0;
+    width:100%;
+    padding:8px 3px;
+    font-size:clamp(9px,2.8vw,11px);
+    line-height:1.2;
+    white-space:nowrap;
+    text-align:center;
+  }
+}
+@media(max-width:360px){
+  .panel-head>.filter-tabs{gap:3px}
+  .panel-head>.filter-tabs button{padding-left:1px;padding-right:1px;font-size:9px;letter-spacing:-.15px}
+}
+:root[data-theme="dark"] .campaign-detail-market{
+  background:#2b3442;
+  color:#f0f3f8;
+  border-color:#414d5e;
+}
