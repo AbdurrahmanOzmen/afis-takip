@@ -218,3 +218,49 @@ body.sidebar-collapsed .sidebar .nav-item[title]:hover::after{content:attr(title
 
 /* Modern poster rejection form */
 .reject-dialog{width:min(560px,calc(100% - 24px));padding:clamp(18px,4vw,28px)}.reject-dialog .modal-head{gap:14px;margin-bottom:16px}.reject-dialog .modal-head h2{margin:5px 0 0;font:800 21px Manrope,sans-serif;letter-spacing:-.5px}.reject-subtitle{margin:8px 0 0;color:var(--muted);font-size:12px;line-height:1.55;max-width:390px}.reject-submission-summary{padding:11px 13px;border:1px solid var(--line);background:var(--bg);border-radius:10px;font-size:12px;font-weight:700;margin-bottom:18px}.reject-reasons{border:0;padding:0;margin:0;min-width:0;display:grid;gap:8px}.reject-reasons legend{font-size:11px;font-weight:800;margin-bottom:10px;color:var(--ink)}.reject-reason-option{display:flex!important;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);margin:0!important;cursor:pointer;transition:border-color .15s,background .15s}.reject-reason-option:has(input:checked){border-color:#e58d91;background:#fff6f6;box-shadow:0 0 0 2px #d7192009}.reject-reason-option input{width:16px!important;height:16px;flex:0 0 auto;margin:0!important;accent-color:var(--red)}.reject-reason-icon{width:34px;height:34px;flex:0 0 34px;border-radius:9px;display:grid;place-items:center;background:#fff0f0;color:var(--red);font-size:19px}.reject-reason-option span:last-child{display:grid;gap:3px}.reject-reason-option b{font-size:12px;color:var(--ink)}.reject-reason-option small{font-size:10px;color:var(--muted);font-weight:400}.reject-details-label{margin:17px 0 0!important}.reject-dialog textarea{resize:vertical;min-height:76px}.reject-submit{background:#d71920!important;color:#fff!important;border-color:#d71920!important}.reject-submit:hover{background:#b81018!important}@media(max-width:480px){.reject-dialog{padding:18px 15px}.reject-dialog .modal-head h2{font-size:18px}.reject-reason-option{padding:10px}.reject-reason-icon{width:30px;height:30px;flex-basis:30px}.reject-dialog .modal-actions{position:sticky;bottom:-18px;background:var(--card);padding:12px 0 2px}.reject-dialog .modal-actions button{flex:1}}:root[data-theme="dark"] .reject-reason-option:has(input:checked){background:#352327;border-color:#9f4349}:root[data-theme="dark"] .reject-reason-icon{background:#40262b}
+
+
+/* Restored campaign detail modal styling */
+/* Scoped improvements: campaign details and mobile overflow only */
+.main-area,.content,.panel,.table-wrap{min-width:0;max-width:100%;}
+.table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.campaign-row-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:145px;}
+.campaign-detail-dialog{width:min(700px,calc(100% - 28px));padding:clamp(18px,3.5vw,30px);}
+.campaign-detail-dialog .campaign-detail-head{margin-bottom:18px;gap:12px;}
+.campaign-detail-dialog .campaign-detail-head h2{margin:7px 0 5px;overflow-wrap:anywhere;}
+.campaign-detail-hero{position:relative;margin:0 0 20px;border-radius:14px;overflow:hidden;background:var(--soft,#f4f5f7);max-height:280px;display:grid;place-items:center;}
+.campaign-detail-hero img{display:block;width:100%;max-height:280px;object-fit:contain;}
+.campaign-detail-hero-label{position:absolute;left:12px;top:12px;padding:6px 9px;border-radius:7px;background:#151a22cc;color:#fff;font-size:9px;font-weight:800;letter-spacing:1px;}
+.campaign-detail-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 22px;}
+.campaign-detail-stats article{min-width:0;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--card);display:flex;flex-direction:column;gap:8px;}
+.campaign-detail-stats article>span,.campaign-detail-info span{font-size:10px;color:var(--muted,#8d929b);font-weight:700;}
+.campaign-detail-stats article>b{font-size:20px;overflow-wrap:anywhere;}
+.campaign-detail-stats .status-pill{align-self:flex-start;font-size:10px;}
+.campaign-detail-stats .progress{width:100%;margin-top:auto;}
+.campaign-detail-section{padding:17px 0;border-top:1px solid var(--line);}
+.campaign-detail-section h3{font-size:13px;margin:0 0 13px;}
+.campaign-detail-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.campaign-detail-info>div{display:grid;gap:5px;min-width:0;}
+.campaign-detail-info b{font-size:12px;overflow-wrap:anywhere;}
+.campaign-detail-markets{display:flex;flex-wrap:wrap;gap:7px;}
+.campaign-detail-market{display:inline-flex;align-items:center;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--soft,#f7f8fa);font-size:11px;font-weight:700;overflow-wrap:anywhere;}
+.campaign-detail-notes{margin:0;line-height:1.65;font-size:12px;color:var(--muted,#69717d);overflow-wrap:anywhere;white-space:pre-wrap;}
+.campaign-detail-dialog .modal-actions{flex-wrap:wrap;}
+@media(max-width:800px){
+  html,body{max-width:100%;overflow-x:hidden;}
+  .main-area{width:100%;margin-left:0;min-width:0;}
+  .content{width:100%;padding-left:15px;padding-right:15px;}
+  .panel{min-width:0;}
+  .table-wrap{max-width:100%;}
+  .campaign-row-actions{min-width:135px;}
+  .campaign-detail-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:420px){
+  .campaign-detail-dialog{width:calc(100% - 18px);padding:16px 14px;max-height:92dvh;}
+  .campaign-detail-info{grid-template-columns:1fr 1fr;gap:10px;}
+  .campaign-detail-stats article{padding:11px;}
+  .campaign-detail-stats article>b{font-size:18px;}
+  .campaign-detail-dialog .modal-actions .btn{flex:1;min-width:0;}
+  .campaign-row-actions .btn{padding:7px 8px;font-size:10px;}
+}
+
