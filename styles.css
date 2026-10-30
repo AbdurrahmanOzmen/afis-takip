@@ -316,3 +316,178 @@ body.sidebar-collapsed .sidebar .nav-item[title]:hover::after{content:attr(title
   color:#f0f3f8;
   border-color:#414d5e;
 }
+
+
+/* =========================================================
+   AFIX / ALGIDA — Premium visual refinement
+   Visual-only layer: no layout logic, selectors or app behavior changed.
+   ========================================================= */
+:root{
+  --red:#c9272e;
+  --red-dark:#a91e25;
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --ink:#252a33;
+  --muted:#737c89;
+  --line:#e5e7eb;
+  --shadow:0 8px 26px rgba(28,35,48,.045);
+}
+body{background:var(--bg);color:var(--ink);letter-spacing:.005em}
+.app-shell{background:linear-gradient(135deg,#f5f6f8 0%,#f0f2f5 100%)}
+.sidebar{
+  background:linear-gradient(180deg,#fff 0%,#fbfbfc 100%);
+  border-right-color:#e7e9ed;
+  box-shadow:5px 0 24px rgba(25,32,45,.025)
+}
+.brand{padding-bottom:34px}
+.brand-mark{background:linear-gradient(145deg,#df343b,#b51d25);box-shadow:0 7px 16px rgba(190,31,39,.2)}
+.workspace-label{color:#a0a5ae}
+.nav{gap:7px}
+.nav-item{color:#5e6672;border-radius:11px;transition:background .18s,color .18s,transform .18s}
+.nav-item:hover{background:#f5f6f8;transform:translateX(2px)}
+.nav-item.active{background:linear-gradient(100deg,#fff0f0,#fff7f7);color:#bd252c;box-shadow:inset 3px 0 #c9272e}
+.nav-item.active span{color:#c9272e}
+.nav-item i{background:#fbe1e2;color:#b9232a}
+.sidebar-bottom{border-color:#eceef1}
+.main-area{background:transparent}
+.topbar{
+  background:rgba(255,255,255,.92);
+  border-bottom-color:#e7e9ed;
+  box-shadow:0 4px 18px rgba(26,34,48,.025);
+  backdrop-filter:blur(14px)
+}
+.crumb strong{color:#343a45}
+.content{padding-top:34px}
+h1{color:#252a33;letter-spacing:-.9px}
+h2,h3{color:var(--ink)}
+.eyebrow{color:#c9272e}
+.subheading{color:#7d8591}
+.stat-card,.panel{
+  border:1px solid rgba(224,227,232,.9);
+  border-radius:16px;
+  box-shadow:0 7px 24px rgba(28,35,48,.035);
+  transition:box-shadow .2s,border-color .2s,transform .2s
+}
+.stat-card:hover,.panel:hover{border-color:#dfe2e7;box-shadow:0 11px 28px rgba(28,35,48,.055)}
+.stat-card{background:linear-gradient(145deg,#fff 0%,#fdfdfd 100%)}
+.stat-icon{border:1px solid rgba(0,0,0,.025)}
+.tone-red{background:#fff0f0;color:#c9272e}
+.tone-green{background:#eaf5ef;color:#27845e}
+.tone-amber{background:#fff5e8;color:#a66d20}
+.tone-blue{background:#edf2fb;color:#496ba8}
+.panel{background:rgba(255,255,255,.96)}
+.campaign-row,.store-card,.submission-card{
+  border-color:#e9ebef;
+  border-radius:13px;
+  background:#fff;
+  transition:border-color .18s,box-shadow .18s,transform .18s
+}
+.campaign-row:hover,.store-card:hover,.submission-card:hover{
+  border-color:#e0c7c9;
+  box-shadow:0 7px 20px rgba(33,39,51,.045);
+  transform:translateY(-1px)
+}
+.campaign-art{background:linear-gradient(145deg,#fae5e6,#fff5f5);color:#c9272e}
+.progress,.bar-track{background:#eceef1}
+.progress span,.bar-track span{background:linear-gradient(90deg,#d83a41,#b9232b)}
+.status-pill{border-radius:7px;letter-spacing:.01em}
+.filter-tabs{background:#f0f1f3}
+.filter-tabs button.active{color:#b9232a}
+.filter-row input,.filter-row select{
+  background:#fff;border-color:#e3e6eb;color:#454d59;border-radius:10px
+}
+.filter-row input:focus,.filter-row select:focus{
+  outline:none;border-color:#d88b8f;box-shadow:0 0 0 3px rgba(201,39,46,.07)
+}
+.btn{border-radius:10px;transition:transform .18s,box-shadow .18s,background .18s}
+.btn-primary{
+  background:linear-gradient(135deg,#d7353c,#b91f27);
+  box-shadow:0 5px 13px rgba(190,31,39,.16)
+}
+.btn-primary:hover{background:linear-gradient(135deg,#c52a32,#a91e25);transform:translateY(-1px);box-shadow:0 7px 17px rgba(190,31,39,.2)}
+.btn-quiet{background:#fff;border-color:#e4e7eb;color:#606976}
+.btn-quiet:hover{background:#f8f9fa;border-color:#d9dde3}
+.icon-button{background:#fff;border-color:#e5e7eb;color:#68717d;border-radius:10px}
+.icon-button:hover{color:#bd252c;border-color:#e3bfc1;background:#fffafa}
+.avatar{background:linear-gradient(145deg,#ffe9e9,#f9dfe0);color:#b9232a}
+footer{border-color:#e7e9ed;color:#969da7}
+.modal{
+  border:1px solid rgba(225,228,233,.9);
+  border-radius:18px;
+  box-shadow:0 28px 90px rgba(25,32,45,.2)
+}
+.modal::backdrop{background:rgba(22,27,36,.48);backdrop-filter:blur(5px)}
+.modal input,.modal select,.modal textarea,.auth-card input{
+  border-color:#e1e5ea;border-radius:10px;background:#fbfcfd;color:#303743
+}
+.modal input:focus,.modal select:focus,.modal textarea:focus,.auth-card input:focus{
+  border-color:#d78a8e;box-shadow:0 0 0 3px rgba(201,39,46,.075)
+}
+/* Login: quiet premium contrast, restrained brand color */
+.auth-gate{
+  background:
+    radial-gradient(ellipse at 18% 18%,rgba(201,39,46,.075),transparent 34%),
+    radial-gradient(ellipse at 85% 82%,rgba(111,126,148,.09),transparent 34%),
+    linear-gradient(135deg,#f5f6f8,#eceff3);
+}
+.auth-card{
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(225,228,233,.95);
+  border-radius:23px;
+  box-shadow:0 24px 75px rgba(35,42,55,.10);
+  backdrop-filter:blur(16px)
+}
+.auth-brand{margin-bottom:38px}
+.auth-card h1{color:#252a33;font-size:29px}
+.auth-copy{color:#737c89}
+.auth-card label{color:#454d59}
+.auth-card input{background:#fafbfc}
+.auth-submit{width:100%;min-height:45px;margin-top:3px}
+.auth-link{color:#b9232a}
+.auth-foot{color:#9299a3}
+:root[data-theme="dark"]{
+  --bg:#171b22;
+  --card:#202630;
+  --ink:#edf0f5;
+  --muted:#a4adba;
+  --line:#343d49;
+  --shadow:0 10px 28px rgba(0,0,0,.16)
+}
+:root[data-theme="dark"] .app-shell{background:linear-gradient(135deg,#171b22,#1b2029)}
+:root[data-theme="dark"] .sidebar{background:linear-gradient(180deg,#202630,#1c222b);border-color:#303946;box-shadow:5px 0 24px rgba(0,0,0,.12)}
+:root[data-theme="dark"] .topbar{background:rgba(32,38,48,.92);border-color:#303946}
+:root[data-theme="dark"] .crumb strong,:root[data-theme="dark"] h1,:root[data-theme="dark"] h2,:root[data-theme="dark"] h3{color:#edf0f5}
+:root[data-theme="dark"] .nav-item{color:#b5bfcc}
+:root[data-theme="dark"] .nav-item:hover{background:#29313d}
+:root[data-theme="dark"] .nav-item.active{background:linear-gradient(100deg,#39272d,#30252c);color:#ff858b;box-shadow:inset 3px 0 #d83a41}
+:root[data-theme="dark"] .stat-card,:root[data-theme="dark"] .panel{background:#202630;border-color:#303946;box-shadow:0 8px 25px rgba(0,0,0,.12)}
+:root[data-theme="dark"] .campaign-row,:root[data-theme="dark"] .store-card,:root[data-theme="dark"] .submission-card{background:#222a35;border-color:#35404d}
+:root[data-theme="dark"] .campaign-row:hover,:root[data-theme="dark"] .store-card:hover,:root[data-theme="dark"] .submission-card:hover{border-color:#654047;box-shadow:0 8px 22px rgba(0,0,0,.16)}
+:root[data-theme="dark"] .campaign-art{background:linear-gradient(145deg,#40272d,#30252c);color:#ff858b}
+:root[data-theme="dark"] .filter-tabs{background:#171d26}
+:root[data-theme="dark"] .filter-tabs button.active{background:#303946;color:#f2f4f8}
+:root[data-theme="dark"] .filter-row input,:root[data-theme="dark"] .filter-row select{background:#1b222c;border-color:#394351;color:#e8edf4}
+:root[data-theme="dark"] .btn-quiet,:root[data-theme="dark"] .icon-button{background:#252d38;border-color:#3a4553;color:#d4dbe5}
+:root[data-theme="dark"] .modal{background:#202630;color:#edf0f5;border-color:#3a4553}
+:root[data-theme="dark"] .modal label{color:#d5dce6}
+:root[data-theme="dark"] .modal input,:root[data-theme="dark"] .modal select,:root[data-theme="dark"] .modal textarea{background:#171e27;color:#edf0f5;border-color:#3a4553}
+:root[data-theme="dark"] .auth-gate{
+  background:
+    radial-gradient(ellipse at 18% 18%,rgba(201,39,46,.13),transparent 34%),
+    radial-gradient(ellipse at 85% 82%,rgba(111,126,148,.10),transparent 34%),
+    linear-gradient(135deg,#171b22,#202630)
+}
+:root[data-theme="dark"] .auth-card{background:rgba(32,38,48,.96);border-color:#394351;box-shadow:0 24px 75px rgba(0,0,0,.28)}
+:root[data-theme="dark"] .auth-card h1,:root[data-theme="dark"] .auth-card label{color:#edf0f5}
+:root[data-theme="dark"] .auth-copy,:root[data-theme="dark"] .auth-foot{color:#a4adba}
+:root[data-theme="dark"] .auth-card input{background:#171e27;color:#edf0f5;border-color:#3a4553}
+@media(max-width:800px){
+  .content{padding-top:23px}
+  .topbar{background:rgba(255,255,255,.96)}
+  :root[data-theme="dark"] .topbar{background:rgba(32,38,48,.96)}
+  .auth-gate{padding:18px}
+  .auth-card{padding:25px 22px}
+}
+@media(prefers-reduced-motion:reduce){
+  .stat-card,.panel,.campaign-row,.store-card,.submission-card,.btn,.nav-item{transition:none}
+}
